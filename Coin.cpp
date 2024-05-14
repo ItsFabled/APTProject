@@ -1,25 +1,19 @@
 #include "Coin.h"
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <string>
  
- // implement functions for managing coins; this may depend on your design.
+// implement functions for managing coins; this may depend on your design.
+Coin::Coin() {
+    this->denom = FIVE_CENTS;
+    this->count = 0;
+    this->cents = denominationCents[FIVE_CENTS];
+}
 
-void loadCoins(const std::string& filename) {
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        std::cerr << "Error: Unable to open coins file " << filename << std::endl;
-        exit(EXIT_FAILURE);
-    }
+Coin::Coin(Denomination denom, unsigned count) {
+    this->denom = denom;
+    this->count = count;
+    this->cents = denominationCents[denom];
+}
 
-    std::string line;
-    while (std::getline(file, line)) {
-        std::istringstream iss(line);
-        std::string denominationStr, quantityStr;
-        std::getline(iss, denominationStr, ',');
-        std::getline(iss, quantityStr, ',');
-
-
-    }
+void Coin::setDenomination(Denomination denom) {
+    this->denom = denom;
+    this->cents = denominationCents[this->denom];
 }

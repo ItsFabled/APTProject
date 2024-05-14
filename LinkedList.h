@@ -1,6 +1,7 @@
 #ifndef LINKEDLIST_H
 #define LINKEDLIST_H
 #include "Node.h"
+#include <functional>
 
 
 class LinkedList
@@ -10,11 +11,11 @@ public:
     ~LinkedList();
 
     // more functions to be added perhaps...
-
-    void loadFoodItems(const std::string& filename);
-    void insertSorted(FoodItem* newItem); 
-    void displayFoodMenu(); 
-
+    void add(FoodItem* foodItem);
+    void remove(const std::string& id);
+    void forEach(std::function<void(FoodItem*)> callback) const;
+    void displayFoods();
+    bool purchaseMeal(const std::string& id);
 private:
     // the beginning of the list
     Node* head;
