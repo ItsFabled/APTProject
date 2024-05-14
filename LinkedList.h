@@ -11,6 +11,10 @@ public:
 
     // more functions to be added perhaps...
 
+    void loadFoodItems(const std::string& filename);
+    void insertSorted(FoodItem* newItem); 
+    void displayFoodMenu(); 
+
 private:
     // the beginning of the list
     Node* head;

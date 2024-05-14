@@ -1,6 +1,8 @@
 #ifndef COIN_H
 #define COIN_H
 
+#include <string> 
+
 // Coin.h defines the coin structure for managing currency in the system. 
 #define DELIM ","  // delimiter 
 
@@ -23,5 +25,7 @@ public:
     // the count of how many of these are in the cash register
     unsigned count;
 };
+
+void loadCoins(const std::string& filename);
 
 #endif // COIN_H
