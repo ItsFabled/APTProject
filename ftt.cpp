@@ -16,9 +16,7 @@
 using namespace std;
 
 
-LinkedList readDataAndPopulateList(CashRegister *cashRegister, const std::string& foodFileName, const std::string& coinFileName) {
-    LinkedList list;
-
+LinkedList* readDataAndPopulateList(CashRegister *cashRegister, const std::string& foodFileName, const std::string& coinFileName, LinkedList *list) {
     // Read food data and populate the list
     std::ifstream foodFile(foodFileName);
     if (foodFile.is_open()) {
@@ -29,20 +27,23 @@ LinkedList readDataAndPopulateList(CashRegister *cashRegister, const std::string
             double price;
             if (std::getline(iss, id, '|') && std::getline(iss, name, '|') &&
                 std::getline(iss, description, '|') && iss >> price) {
-                FoodItem* foodItem = new FoodItem();
-                foodItem->id = id;
+                
+                FoodItem* foodItem = new FoodItem(id, name, description);
+                /*foodItem->id = id;
                 foodItem->name = name;
-                foodItem->description = description;
+                foodItem->description = description;*/
                 foodItem->price.dollars = static_cast<unsigned>(price);
                 foodItem->price.cents = static_cast<unsigned>((price - static_cast<double>(foodItem->price.dollars)) * 100);
                 foodItem->on_hand = DEFAULT_FOOD_STOCK_LEVEL;
-                list.add(foodItem);
+                list->add(foodItem);
             }
         }
         foodFile.close();
     } else {
         std::cerr << "Error opening food file: " << foodFileName << std::endl;
     }
+
+    //list.displayFoods();
 
     // Read coin data
     std::ifstream coinFile(coinFileName);
@@ -96,6 +97,7 @@ void saveData(const LinkedList& list, const std::string& foodFileName) {
             foodFile << foodItem->id << "|" << foodItem->name << "|" << foodItem->description << "|" << foodItem->price.dollars + (foodItem->price.cents / 100.0) << std::endl;
         });
         foodFile.close();
+        
     } else {
         std::cerr << "Error opening food file: " << foodFileName << std::endl;
     }
@@ -120,16 +122,17 @@ int main(int argc, char **argv)
     string foodsFilename = "foods.dat";
     string coinsFilename = "coins.dat";
     /* validate command line arguments */
-     if (argc != 3) {
-         cout << "Invalid number of arguments, correct syntax is as follows:" << endl;
-         cout << "./ftt <foodsfile> <coinsfile>" << endl;
-         return -1;
-     }
+    // if (argc != 3) {
+    //     cout << "Invalid number of arguments, correct syntax is as follows:" << endl;
+    //     cout << "./ftt <foodsfile> <coinsfile>" << endl;
+    //     return -1;
+    // }
     // TODO
     
     // Initialize the cash register
-    CashRegister cashRegsiter;
-    LinkedList list = readDataAndPopulateList(&cashRegsiter,foodsFilename, coinsFilename);
+    CashRegister cashRegister;
+    LinkedList list;
+    readDataAndPopulateList(&cashRegister,foodsFilename, coinsFilename, &list);
     
     string id;
     int choice;
@@ -145,15 +148,16 @@ int main(int argc, char **argv)
             cout<<"Purchase Meal"<<endl<<"---------------"<<endl;
             cout<<"Please enter the ID of the food you wish to purchase: ";
             cin>>id;
-            list.purchaseMeal(id);
+            list.purchaseMeal(id, &cashRegister);
             break;
         case 3:
             // Save and Exit
             saveData(list, foodsFilename);
-            cashRegsiter.saveRegister(coinsFilename);   
+            cashRegister.saveRegister(coinsFilename);
             break;
         case 4:
             // Add Food
+            list.addNewFoodItem();
             break;
         case 5:
             // Remove Food
@@ -163,7 +167,7 @@ int main(int argc, char **argv)
             break;
         case 6:
             // Display Balance
-            cashRegsiter.printBalanceSummary();
+            cashRegister.printBalanceSummary();
             break;
         case 7:
             // Abort Program
@@ -176,6 +180,6 @@ int main(int argc, char **argv)
 
     // For example, you can print the denomination and count of each coin in the cash register
     saveData(list, foodsFilename);
-    cashRegsiter.saveRegister(coinsFilename);    
+    cashRegister.saveRegister(coinsFilename);
     return EXIT_SUCCESS;
 }

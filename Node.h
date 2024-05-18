@@ -41,6 +41,12 @@ public:
 class FoodItem
 {
 public:
+    FoodItem(std::string id, std::string name, std::string desc) {
+        this->id = id;
+        this->name = name;
+        this->description = desc;
+    }
+
     //the unique id for this food item
     std::string id;
 

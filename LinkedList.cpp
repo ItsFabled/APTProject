@@ -1,5 +1,10 @@
+#include <algorithm>
+
 #include <iostream>
 #include "LinkedList.h"
+#include <iomanip>
+#include <sstream>
+#include "CashRegister.h"
 
 using namespace std;
 
@@ -37,7 +42,28 @@ void LinkedList::add(FoodItem* foodItem) {
     // Increment the count of nodes in the list
     count++;
 }
+void LinkedList::addNewFoodItem() {
+    std::string nextID = getMaxCode();
 
+    std::string name, description;
+    double price;
+    std::cout << " This new meal item will have the Item id of "<< nextID <<"."<<endl;
+    std::cout << "Enter the item name: ";
+    std::cin.ignore(); 
+    std::getline(std::cin, name);
+    std::cout << "Enter the item description: ";
+    std::getline(std::cin, description);
+    std::cout << " Enter the price for this item (incents): ";
+    std::cin >> price;
+    price = price / 100;
+    FoodItem* newFood = new FoodItem(nextID, name, description);
+    newFood->price.dollars = static_cast<int>(price);
+    newFood->price.cents = static_cast<int>((price - static_cast<int>(price)) * 100);
+
+    add(newFood);
+
+    std::cout << "This item \"" << name << " - " << description << "\" has now been added to the food menu." << std::endl;
+}
 void LinkedList::remove(const std::string& id) {
     Node* current = head;
     Node* prev = nullptr;
@@ -68,26 +94,63 @@ void LinkedList::remove(const std::string& id) {
 void LinkedList::forEach(std::function<void(FoodItem*)> callback) const {
     Node* current = head;
     while (current != nullptr) {
-        callback(current->data);
+        if (current->data != nullptr)
+        {
+            callback(current->data);
+        }
         current = current->next;
     }
 }
 
 void printFoodItem(FoodItem* food) {
-    //std::cout << "ID: " << food->id << ", Name: " << food->name << ", Description: " << food->description << ", Price: $" 
-    //          << food->price.dollars << "." << food->price.cents << std::endl;
-    
-    std::cout<< food->id << "|" << food->name << "								|$"<< food->price.dollars << "." << food->price.cents << std::endl;
+     std::cout << food->id << "|" << food->name << "						|$" << std::setw(3) << food->price.dollars << "." << food->price.cents << std::endl;
 }
 
 void LinkedList::displayFoods() {
-	std::cout <<"Food Menu" << std::endl << "---------"<< std::endl<<"ID   |Name								|Price"<<endl;
-	cout<<"------------------------------------------------------------------------------------"<<endl;    
+	std::cout <<"Food Menu" << std::endl << "---------"<< std::endl<<"ID   |Name						|Price"<<endl;
+	cout<<"-----------------------------------------------------------------"<<endl;    
     this->forEach(printFoodItem);
+    cout << endl;
+}
+int extractIntegerPart(const std::string& input) {
+    size_t pos = input.find_first_not_of("0123456789");
+    std::string integerPart = input.substr(1, pos - 1);
+    int result = stoi(integerPart);
+    return result;
 }
 
+string LinkedList::getMaxCode() {
+    
+    Node* current = head;
+    int max = 0;
+    while (current != NULL) {
+        int code = extractIntegerPart(current->data->id);
+        if (max < extractIntegerPart(current->data->id))
+        {
+            max = code;
+        }
+        current = current->next;
+    }
+    ostringstream foodCode;
+    max++;
+    foodCode << "F" << std::setw(4) << std::setfill('0') << max;
 
-bool LinkedList::purchaseMeal(const std::string& id){
+    return foodCode.str();
+}
+
+bool LinkedList::purchaseMeal(const std::string& id, CashRegister* cashRegister){
+    unsigned FIVE_CENTS_Add = 0;
+    unsigned TEN_CENTS_Add = 0;
+    unsigned TWENTY_CENTS_Add = 0;
+    unsigned FIFTY_CENTS_Add = 0;
+    unsigned ONE_DOLLAR_Add = 0;
+    unsigned TWO_DOLLARS_Add = 0;
+    unsigned FIVE_DOLLARS_Add = 0;
+    unsigned TEN_DOLLARS_Add = 0;
+    unsigned TWENTY_DOLLARS_Add = 0;
+    unsigned FIFTY_DOLLARS_Add = 0;
+
+
 	Node* current = head;
 	while(current != NULL){
 		if(current->data->id == id){
@@ -114,6 +177,46 @@ bool LinkedList::purchaseMeal(const std::string& id){
 
 				if(paidAmount == 5 || paidAmount == 10 || paidAmount == 20 || paidAmount == 50 || paidAmount == 100 || paidAmount == 200 || paidAmount == 500 || paidAmount == 1000 || paidAmount == 2000 || paidAmount == 5000)
 				{
+                    if (paidAmount == 5000)
+                    {
+                        FIFTY_DOLLARS_Add++;
+                    }
+                    else if (paidAmount == 2000)
+                    {
+                        TWENTY_DOLLARS_Add++;
+                    }
+                    else if (paidAmount == 1000)
+                    {
+                        TEN_DOLLARS_Add++;
+                    }
+                    else if (paidAmount == 500)
+                    {
+                        FIVE_DOLLARS_Add++;
+                    }
+                    else if (paidAmount == 200)
+                    {
+                        TWO_DOLLARS_Add++;
+                    }
+                    else if (paidAmount == 100)
+                    {
+                        ONE_DOLLAR_Add++;
+                    }
+                    else if (paidAmount == 50)
+                    {
+                        FIFTY_CENTS_Add++;
+                    }
+                    else if (paidAmount == 20)
+                    {
+                        TWENTY_CENTS_Add++;
+                    }
+                    else if (paidAmount == 10)
+                    {
+                        TEN_CENTS_Add++;
+                    }
+                    else
+                    {
+                        FIVE_CENTS_Add++;
+                    }
 					payment = payment + paidAmount;
 				}
 				else 
@@ -121,7 +224,10 @@ bool LinkedList::purchaseMeal(const std::string& id){
 					cout<<"Invalid denomination encountered."<<endl;
 				}
 			}
-			// int change = totalPrice - payment;
+			int change = payment - totalPrice;
+            cout <<"Your change is " << cashRegister->updateAllDenominations(FIVE_CENTS_Add, TEN_CENTS_Add, TWENTY_CENTS_Add, FIFTY_CENTS_Add,
+                ONE_DOLLAR_Add, TWO_DOLLARS_Add, FIVE_DOLLARS_Add, TEN_DOLLARS_Add,
+                TWENTY_DOLLARS_Add, FIFTY_DOLLARS_Add, payment, change, cashRegister) << endl;
             return true;
 		}
 		current = current->next;
