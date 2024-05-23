@@ -138,7 +138,7 @@ string LinkedList::getMaxCode() {
     return foodCode.str();
 }
 
-bool LinkedList::purchaseMeal(const std::string& id, CashRegister* cashRegister){
+bool LinkedList::purchaseMeal(const std::string& id, CashRegister* cashRegister) {
     unsigned FIVE_CENTS_Add = 0;
     unsigned TEN_CENTS_Add = 0;
     unsigned TWENTY_CENTS_Add = 0;
@@ -150,88 +150,60 @@ bool LinkedList::purchaseMeal(const std::string& id, CashRegister* cashRegister)
     unsigned TWENTY_DOLLARS_Add = 0;
     unsigned FIFTY_DOLLARS_Add = 0;
 
+    Node* current = head;
+    while (current != NULL) {
+        if (current->data->id == id) {
+            std::cout << "You selected: ";
+            std::cout << current->data->name << "-" << current->data->description << " This will cost you $" << current->data->price.dollars << "." << current->data->price.cents << std::endl;
+            int totalPrice = (current->data->price.dollars * 100) + current->data->price.cents;
+            int payment = 0;
+            string paid = "0";
+            int paidAmount = 0;
+            cout << "Please hand over the money - type in the value of each note/coin in cents." << endl;
+            cout << "Please enter ctrl-D or enter on a new line to cancel this purchase." << endl;
+            while (payment < totalPrice) {
+                cout << "You still need to give us $" << (totalPrice - payment) / 100 << "." << (totalPrice - payment) % 100 << ": ";
+                cin >> paid;
 
-	Node* current = head;
-	while(current != NULL){
-		if(current->data->id == id){
-			std::cout << "You selected: "; 
-			std::cout << current->data->name << "-" 
-                      << current->data->description << " This will cost you $" << current->data->price.dollars << "." 
-                      << current->data->price.cents << std::endl;
-			int totalPrice = (current->data->price.dollars * 100) + (current->data->price.cents);
-			int payment=0;
-			string paid="0";
-			int paidAmount =0;
-			std::cout << "Please hand over the mony - type in the value of each note/coin in cents."<<endl;
-			cout<<"Please enter ctrl-D or enter on a new line to cancel this purchase."<<endl;
-			while (payment < totalPrice)
-			{
-				cout<<"You still need to give us $"<< (totalPrice - payment) / 100 << "." << (totalPrice - payment) % 100<<": ";
-				cin >> paid;
-				
-				if (paid == "\x4"){
-					std::cout<<"Purchased Canceled."<< std::endl;
-					return false;
-				}
-				paidAmount = stoi(paid);
+                if (paid == "\x4") {
+                    std::cout << "Purchase Canceled." << std::endl;
+                    // Return the money handed over as change
+                    cout << "Your change is $" << (payment / 100) << "." << (payment % 100) << endl;
+                    // Add change back to the balance
+                    cashRegister->updateAllDenominations(FIVE_CENTS_Add, TEN_CENTS_Add, TWENTY_CENTS_Add, FIFTY_CENTS_Add,
+                                                          ONE_DOLLAR_Add, TWO_DOLLARS_Add, FIVE_DOLLARS_Add, TEN_DOLLARS_Add,
+                                                          TWENTY_DOLLARS_Add, FIFTY_DOLLARS_Add, payment, -1 * payment, cashRegister);
+                    return false;
+                }
+                paidAmount = stoi(paid);
 
-				if(paidAmount == 5 || paidAmount == 10 || paidAmount == 20 || paidAmount == 50 || paidAmount == 100 || paidAmount == 200 || paidAmount == 500 || paidAmount == 1000 || paidAmount == 2000 || paidAmount == 5000)
-				{
-                    if (paidAmount == 5000)
-                    {
-                        FIFTY_DOLLARS_Add++;
-                    }
-                    else if (paidAmount == 2000)
-                    {
-                        TWENTY_DOLLARS_Add++;
-                    }
-                    else if (paidAmount == 1000)
-                    {
-                        TEN_DOLLARS_Add++;
-                    }
-                    else if (paidAmount == 500)
-                    {
-                        FIVE_DOLLARS_Add++;
-                    }
-                    else if (paidAmount == 200)
-                    {
-                        TWO_DOLLARS_Add++;
-                    }
-                    else if (paidAmount == 100)
-                    {
-                        ONE_DOLLAR_Add++;
-                    }
-                    else if (paidAmount == 50)
-                    {
-                        FIFTY_CENTS_Add++;
-                    }
-                    else if (paidAmount == 20)
-                    {
-                        TWENTY_CENTS_Add++;
-                    }
-                    else if (paidAmount == 10)
-                    {
-                        TEN_CENTS_Add++;
-                    }
-                    else
-                    {
-                        FIVE_CENTS_Add++;
-                    }
-					payment = payment + paidAmount;
-				}
-				else 
-				{
-					cout<<"Invalid denomination encountered."<<endl;
-				}
-			}
-			int change = payment - totalPrice;
-            cout <<"Your change is " << cashRegister->updateAllDenominations(FIVE_CENTS_Add, TEN_CENTS_Add, TWENTY_CENTS_Add, FIFTY_CENTS_Add,
-                ONE_DOLLAR_Add, TWO_DOLLARS_Add, FIVE_DOLLARS_Add, TEN_DOLLARS_Add,
-                TWENTY_DOLLARS_Add, FIFTY_DOLLARS_Add, payment, change, cashRegister) << endl;
+                if (paidAmount == 5 || paidAmount == 10 || paidAmount == 20 || paidAmount == 50 || paidAmount == 100 || paidAmount == 200 || paidAmount == 500 || paidAmount == 1000 || paidAmount == 2000 || paidAmount == 5000) {
+                    // Increment payment
+                    payment += paidAmount;
+                } else {
+                    cout << "Invalid denomination encountered." << endl;
+                }
+            }
+
+            // Deduct payment from balance
+            cashRegister->updateAllDenominations(FIVE_CENTS_Add, TEN_CENTS_Add, TWENTY_CENTS_Add, FIFTY_CENTS_Add,
+                                                 ONE_DOLLAR_Add, TWO_DOLLARS_Add, FIVE_DOLLARS_Add, TEN_DOLLARS_Add,
+                                                 TWENTY_DOLLARS_Add, FIFTY_DOLLARS_Add, -1 * payment, payment, cashRegister);
+
+            // Calculate change
+            int change = payment - totalPrice;
+
+            // Add change back to balance
+            cashRegister->updateAllDenominations(FIVE_CENTS_Add, TEN_CENTS_Add, TWENTY_CENTS_Add, FIFTY_CENTS_Add,
+                                                 ONE_DOLLAR_Add, TWO_DOLLARS_Add, FIVE_DOLLARS_Add, TEN_DOLLARS_Add,
+                                                 TWENTY_DOLLARS_Add, FIFTY_DOLLARS_Add, change, -1 * payment, cashRegister);
+
+            cout << "Your change is $" << (change / 100) << "." << (change % 100) << endl;
             return true;
-		}
-		current = current->next;
-	}
-	std::cout << "Invalid food item ID. Please try again." << std::endl;
+        }
+        current = current->next;
+    }
+
+    std::cout << "Invalid food item ID. Please try again." << std::endl;
     return false;
 }
